@@ -3,4 +3,3 @@ exclude:
   - design/voice.md
   - design/commit.txt
   - design/checksums.txt
-  - CNAME
