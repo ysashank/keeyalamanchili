@@ -1,5 +1,6 @@
-"""Minimal check for a static site: every page parses and every local link, script, style and image it names exists."""
+"""Minimal check for a static site: every page parses and every local link, script, style and image it names exists, and the build publishes no design file a page does not load."""
 import os
+import re
 import sys
 from html.parser import HTMLParser
 from urllib.parse import unquote, urlparse
@@ -18,7 +19,7 @@ class Links(HTMLParser):
                 self.found.append(value)
 
 
-problems, pages = [], 0
+problems, pages, loaded = [], 0, set()
 for folder, names, files in os.walk(ROOT):
     names[:] = [name for name in names if not name.startswith(".")]
     for name in files:
@@ -34,6 +35,24 @@ for folder, names, files in os.walk(ROOT):
                 target = os.path.join(ROOT, parts.path.lstrip("/")) if parts.path.startswith("/") else os.path.join(folder, unquote(parts.path))
                 if not (os.path.isfile(target) or os.path.isfile(os.path.join(target, "index.html"))):
                     problems.append(f"{os.path.relpath(path, ROOT)} links to {link}, which does not exist")
+                loaded.add(os.path.normpath(target))
+stack = [path for path in loaded if path.endswith(".css")]
+while stack:
+    path = stack.pop()
+    if os.path.isfile(path):
+        for link in re.findall(r"""(?:@import\s+|url\()\s*["']?([^"')\s;]+)""", open(path, encoding="utf-8").read()):
+            parts = urlparse(link)
+            target = os.path.normpath(os.path.join(os.path.dirname(path), unquote(parts.path)))
+            if not (parts.scheme or parts.netloc) and target not in loaded:
+                loaded.add(target)
+                stack.append(target)
+config = open(os.path.join(ROOT, "_config.yml"), encoding="utf-8").read()
+excluded = [os.path.join(ROOT, item) for item in re.findall(r"^[ \t]+-[ \t]+(\S+)", re.search(r"^exclude:\n((?:[ \t]+-.*\n?)*)", config, re.M).group(1), re.M)]
+for folder, names, files in os.walk(os.path.join(ROOT, "design")):
+    for name in files:
+        path = os.path.join(folder, name)
+        if path not in loaded and not any(path == item or path.startswith(item + os.sep) for item in excluded):
+            problems.append(f"{os.path.relpath(path, ROOT)} is published and no page loads it, so _config.yml must exclude it")
 if not os.path.isfile(os.path.join(ROOT, "index.html")):
     problems.append("index.html is missing")
 print("\n".join(problems) or f"{pages} pages pass")

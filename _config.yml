@@ -1,5 +1,10 @@
 exclude:
-  - design/readme.md
-  - design/voice.md
-  - design/commit.txt
+  - design/.check
   - design/checksums.txt
+  - design/commit.txt
+  - design/components.css
+  - design/document.js
+  - design/profile.css
+  - design/readme.md
+  - design/tokens
+  - design/voice.md
