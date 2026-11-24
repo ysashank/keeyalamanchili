@@ -40,14 +40,17 @@ stack = [path for path in loaded if path.endswith(".css")]
 while stack:
     path = stack.pop()
     if os.path.isfile(path):
-        for link in re.findall(r"""(?:@import\s+|url\()\s*["']?([^"')\s;]+)""", open(path, encoding="utf-8").read()):
+        for link in re.findall(r"""(?:@import\s+(?:url\()?|url\()\s*["']?([^"')\s;]+)""", open(path, encoding="utf-8").read()):
             parts = urlparse(link)
             target = os.path.normpath(os.path.join(os.path.dirname(path), unquote(parts.path)))
             if not (parts.scheme or parts.netloc) and target not in loaded:
                 loaded.add(target)
                 stack.append(target)
-config = open(os.path.join(ROOT, "_config.yml"), encoding="utf-8").read()
-excluded = [os.path.join(ROOT, item) for item in re.findall(r"^[ \t]+-[ \t]+(\S+)", re.search(r"^exclude:\n((?:[ \t]+-.*\n?)*)", config, re.M).group(1), re.M)]
+config = open(os.path.join(ROOT, "_config.yml"), encoding="utf-8").read() if os.path.isfile(os.path.join(ROOT, "_config.yml")) else ""
+block = re.search(r"^exclude:\n((?:[ \t]+-.*\n?)*)", config, re.M)
+if not block:
+    problems.append("_config.yml has no indented exclude list")
+excluded = [os.path.join(ROOT, item) for item in re.findall(r"^[ \t]+-[ \t]+(\S+)", block.group(1) if block else "", re.M)]
 for folder, names, files in os.walk(os.path.join(ROOT, "design")):
     for name in files:
         path = os.path.join(folder, name)
