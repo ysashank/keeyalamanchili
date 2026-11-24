@@ -1,4 +1,4 @@
-"""Minimal check for a static site: every page parses and every local link, script, style and image it names exists, and the build publishes no design file a page does not load."""
+"""Minimal check for a static site: every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
 import os
 import re
 import sys
@@ -47,6 +47,8 @@ while stack:
                 loaded.add(target)
                 stack.append(target)
 config = open(os.path.join(ROOT, "_config.yml"), encoding="utf-8").read() if os.path.isfile(os.path.join(ROOT, "_config.yml")) else ""
+if not re.search(r"^theme:[ \t]*(null|~)[ \t]*$", config, re.M):
+    problems.append("_config.yml must set theme: null, or Pages publishes the default theme's stylesheet")
 block = re.search(r"^exclude:\n((?:[ \t]+-.*\n?)*)", config, re.M)
 if not block:
     problems.append("_config.yml has no indented exclude list")
