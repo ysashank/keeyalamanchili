@@ -1,4 +1,4 @@
-"""Minimal check for a static site: every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
+"""Minimal check for a static site: index.html and 404.html exist, every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
 import os
 import re
 import sys
@@ -58,7 +58,8 @@ for folder, names, files in os.walk(os.path.join(ROOT, "design")):
         path = os.path.join(folder, name)
         if path not in loaded and not any(path == item or path.startswith(item + os.sep) for item in excluded):
             problems.append(f"{os.path.relpath(path, ROOT)} is published and no page loads it, so _config.yml must exclude it")
-if not os.path.isfile(os.path.join(ROOT, "index.html")):
-    problems.append("index.html is missing")
+for required in ("index.html", "404.html"):
+    if not os.path.isfile(os.path.join(ROOT, required)):
+        problems.append(f"{required} is missing")
 print("\n".join(problems) or f"{pages} pages pass")
 sys.exit(1 if problems else 0)
