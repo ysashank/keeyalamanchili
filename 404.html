@@ -16,8 +16,21 @@
 
 <body class="site">
   <a class="skip-link" href="#main">Skip to Content</a>
-  <header class="navbar">
+  <header class="navbar navbar--fold">
     <div class="navbar__left"><a class="wordmark wordmark--lg" href="/"><svg class="wordmark__mark" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" style="fill:var(--color-text)"/><circle cx="5" cy="5" r="1.5" style="fill:var(--color-background)"/></svg><span class="wordmark__name">Keerthana Yalamanchili</span></a></div>
+    <div class="navbar__right"><div class="nav__links">
+      <a class="btn btn--plain btn--sm navbar__fold" href="/#impact">Impact</a>
+      <a class="btn btn--plain btn--sm navbar__fold" href="/#experience">Experience</a>
+      <a class="btn btn--plain btn--sm navbar__fold" href="/#education">Education</a>
+      <a class="btn btn--plain btn--sm navbar__fold" href="/#contact">Contact</a>
+      <button class="btn btn--icon navbar__more" popovertarget="sections" aria-label="Sections"><svg class="icon" aria-hidden="true"><use href="/design/icons.svg#more" /></svg></button>
+      <div class="menu menu--navbar" id="sections" popover>
+        <a class="menu-item" href="/#impact">Impact</a>
+        <a class="menu-item" href="/#experience">Experience</a>
+        <a class="menu-item" href="/#education">Education</a>
+        <a class="menu-item" href="/#contact">Contact</a>
+      </div>
+    </div></div>
   </header>
 
   <main id="main" class="outcome">

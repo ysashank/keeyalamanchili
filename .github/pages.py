@@ -1,4 +1,4 @@
-"""Minimal check for a static site: index.html and 404.html exist, every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
+"""Minimal check for a static site: index.html and 404.html exist, 404.html has the nav bar of index.html, every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
 import os
 import re
 import sys
@@ -61,5 +61,14 @@ for folder, names, files in os.walk(os.path.join(ROOT, "design")):
 for required in ("index.html", "404.html"):
     if not os.path.isfile(os.path.join(ROOT, required)):
         problems.append(f"{required} is missing")
+def bar(name):
+    path = os.path.join(ROOT, name)
+    found = re.search(r"<header class=\"navbar.*?</header>", open(path, encoding="utf-8").read(), re.S) if os.path.isfile(path) else None
+    text = found.group(0) if found else ""
+    return re.sub(r"\s+", " ", text.replace('href="/#', 'href="#').replace('href="/"', 'href="#main"').replace("/design/", "design/")).strip()
+
+
+if os.path.isfile(os.path.join(ROOT, "404.html")) and os.path.isfile(os.path.join(ROOT, "index.html")) and bar("404.html") != bar("index.html"):
+    problems.append("404.html must have the nav bar of index.html (design Pattern 2): same header, links to /#section and /")
 print("\n".join(problems) or f"{pages} pages pass")
 sys.exit(1 if problems else 0)
