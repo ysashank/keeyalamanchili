@@ -1,11 +1,14 @@
-"""Minimal check for a static site: index.html and 404.html exist, 404.html has the nav bar of index.html, every page parses and every local link, script, style and image it names exists, and the build publishes no design file or theme stylesheet a page does not load."""
+"""Minimal check for a static site: index.html and 404.html exist, 404.html has the nav bar of index.html, every page parses and every local link, script, style and image it names exists, the build publishes no design file or theme stylesheet a page does not load, and no published file lies outside the known pages and folders."""
 import os
 import re
+import subprocess
 import sys
 from html.parser import HTMLParser
 from urllib.parse import unquote, urlparse
 
 ROOT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else ".")
+KNOWN_FILES = {"index.html", "404.html", "llms.txt", "robots.txt", "sitemap.xml", "styles.css"}
+KNOWN_FOLDERS = {"design", "favicon", "images"}
 
 
 class Links(HTMLParser):
@@ -58,6 +61,10 @@ for folder, names, files in os.walk(os.path.join(ROOT, "design")):
         path = os.path.join(folder, name)
         if path not in loaded and not any(path == item or path.startswith(item + os.sep) for item in excluded):
             problems.append(f"{os.path.relpath(path, ROOT)} is published and no page loads it, so _config.yml must exclude it")
+for relative in subprocess.run(["git", "-C", ROOT, "ls-files", "-z", "--cached", "--others", "--exclude-standard"], capture_output=True, check=True).stdout.decode().split("\0"):
+    path = os.path.join(ROOT, relative)
+    if relative and not any(part.startswith((".", "_")) for part in relative.split("/")) and relative not in KNOWN_FILES and relative.split("/")[0] not in KNOWN_FOLDERS and not any(path == item or path.startswith(item + os.sep) for item in excluded):
+        problems.append(f"{relative} is published and is not a known page or file, so add it to pages.py or exclude it in _config.yml")
 for required in ("index.html", "404.html"):
     if not os.path.isfile(os.path.join(ROOT, required)):
         problems.append(f"{required} is missing")
